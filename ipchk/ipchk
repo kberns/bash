@@ -1,0 +1,30 @@
+#!/bin/bash
+# Copyright Kristoffer Bernssen 2016 - released under Attribution-ShareAlike 4.0 International http://creativecommons.org/licenses/by-sa/4.0/
+arg1=$1
+argcheck=${echo $arg1 | pcre2grep -nM '(?i)\-?\-?HELP'};
+#if [ $arg1 == "help" ] || [ $arg1 == "--help" ];then
+if [$argcheck != ""];then
+echo "Usage: $0 <network>"
+echo "Example: $0 eth0"
+else
+if [[ $UID != 0 ]]; then
+    echo "Please run this script with sudo:"
+    echo "sudo $0 $*"
+    exit 1
+fi
+echo "Watching $arg1 for IP change";
+echo "Current IP:" $(wget http://ipinfo.io/ip -qO -)
+while true
+do
+    T1=$(wget http://ipinfo.io/ip -qO -);
+    if [[ $T2 != "" ]];then
+      if [[ $T1 != $T2 ]];then
+       ifconfig $arg1 down
+       notify-send 'WARNING' 'IP Changed!' --icon=dialog-information
+       exit 1
+      fi
+      sleep 1
+    fi
+    T2=$T1
+done
+fi
